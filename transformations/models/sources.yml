@@ -1,0 +1,10 @@
+version: 2
+
+sources:
+  - name: raw
+    schema: raw
+    tables:
+      - name: streams
+      - name: tracks
+      - name: artists
+      - name: top_tracks

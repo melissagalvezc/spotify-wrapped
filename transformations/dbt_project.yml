@@ -1,0 +1,19 @@
+name: 'transformations'
+version: '1.0.0'
+config-version: 2
+
+profile: 'transformations'
+
+model-paths: ["models"]
+
+models:
+  transformations:
+
+    silver:
+      schema: silver
+      +materialized: view
+
+    gold:
+      schema: gold
+      +materialized: view
+
