@@ -1,21 +1,23 @@
 {{ config(materialized='view') }}
-WITH play_counts AS (
-    SELECT 
+WITH track_periods AS (
+    SELECT
         track_id,
         track_name,
         artist_id,
         artist_name,
-        COUNT(*) AS play_count
-    FROM {{ ref('streams') }}
-    GROUP BY 1, 2, 3, 4
+        COUNT(DISTINCT time_range) AS periods_appeared,
+        SUM(rank) AS rank_score
+    FROM {{ source('raw', 'top_tracks') }}
+    GROUP BY track_id, track_name, artist_id, artist_name
+    HAVING COUNT(DISTINCT time_range) = 3
 )
-
 SELECT
-    track_id,
+    track_id AS id,
+    track_name AS name,
     track_name,
     artist_id,
     artist_name,
-    play_count
-FROM play_counts
-ORDER BY play_count DESC
+    NULL AS play_count
+FROM track_periods
+ORDER BY periods_appeared DESC, rank_score ASC
 LIMIT 1

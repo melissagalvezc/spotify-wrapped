@@ -81,12 +81,6 @@ export function WrappedSlide({ slide, slideIndex, onNext }: SlideProps) {
           <motion.p variants={itemVariants} className="text-2xl md:text-3xl text-pink-300 font-light">
             by {slide.data.artist}
           </motion.p>
-
-          <motion.div variants={itemVariants} className="pt-4">
-            <p className="text-white/60 text-lg">
-              You played this track <span className="font-bold text-white">{slide.data.play_count} times</span>
-            </p>
-          </motion.div>
         </motion.div>
       </motion.div>
     )
@@ -112,12 +106,6 @@ export function WrappedSlide({ slide, slideIndex, onNext }: SlideProps) {
           <motion.h2 variants={itemVariants} className="text-6xl md:text-7xl font-black text-white text-balance">
             {slide.data.name}
           </motion.h2>
-
-          <motion.div variants={itemVariants} className="pt-4">
-            <p className="text-white/60 text-lg">
-              Streamed <span className="font-bold text-purple-300">{slide.data.play_count} times</span>
-            </p>
-          </motion.div>
         </motion.div>
       </motion.div>
     )
@@ -143,12 +131,6 @@ export function WrappedSlide({ slide, slideIndex, onNext }: SlideProps) {
           <motion.h2 variants={itemVariants} className="text-6xl md:text-7xl font-black text-white text-balance">
             {slide.data.name}
           </motion.h2>
-
-          <motion.div variants={itemVariants} className="pt-4">
-            <p className="text-white/60 text-lg">
-              {slide.data.play_count} <span className="text-blue-300 font-semibold">total plays</span>
-            </p>
-          </motion.div>
         </motion.div>
       </motion.div>
     )
@@ -194,7 +176,6 @@ export function WrappedSlide({ slide, slideIndex, onNext }: SlideProps) {
             >
               <p className="text-purple-300 text-sm font-semibold mb-2">TOP ARTIST</p>
               <p className="text-white font-bold text-lg">{slide.data.topArtist.name}</p>
-              <p className="text-purple-200 text-sm mt-1">{slide.data.topArtist.play_count} plays</p>
             </motion.div>
           )}
 
@@ -206,7 +187,6 @@ export function WrappedSlide({ slide, slideIndex, onNext }: SlideProps) {
             >
               <p className="text-blue-300 text-sm font-semibold mb-2">TOP GENRE</p>
               <p className="text-white font-bold text-lg">{slide.data.topGenre.name}</p>
-              <p className="text-blue-200 text-sm mt-1">{slide.data.topGenre.play_count} plays</p>
             </motion.div>
           )}
         </motion.div>

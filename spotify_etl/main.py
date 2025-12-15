@@ -18,8 +18,6 @@ def extract_recent_streams(sp):
     recent = sp.current_user_recently_played(limit=50).get("items", [])
 
     stream_rows = []
-    track_ids = set()
-    artist_ids = set()
 
     for item in recent:
         played_at = item["played_at"]
@@ -38,11 +36,7 @@ def extract_recent_streams(sp):
         
         stream_rows.append((played_at, track_id, artist_id, context))
 
-        track_ids.add(track_id)
-        for a in artists:
-            artist_ids.add(a["id"])
-
-    return stream_rows, list(track_ids), list(artist_ids)
+    return stream_rows
 
 
 
@@ -83,6 +77,9 @@ def extract_top_tracks(sp, time_range):
     response = sp.current_user_top_tracks(time_range=time_range, limit=50).get("items", [])
 
     rows = []
+    track_ids = set()
+    artist_ids = set()
+   
     for idx, item in enumerate(response, start=1):
 
         track_id = item["id"]
@@ -103,8 +100,17 @@ def extract_top_tracks(sp, time_range):
             artist_name,
             popularity
         ))
+        
+        # Collect track and artist IDs for metadata extraction
+        track_ids.add(track_id)
+        if artist_id:
+            artist_ids.add(artist_id)
+        # Also collect all artists from the track
+        for a in item.get("artists", []):
+            if a.get("id"):
+                artist_ids.add(a["id"])
 
-    return rows
+    return rows, list(track_ids), list(artist_ids)
 
 
 
@@ -113,29 +119,33 @@ if __name__ == "__main__":
 
     sp = get_spotify_client()
 
-    print("🔄 Extrayendo recently played...")
-    stream_rows, track_ids, artist_ids = extract_recent_streams(sp)
+    print("🔄 Extracting recently played...")
+    stream_rows = extract_recent_streams(sp)
 
     print(f"Inserting {len(stream_rows)} streams...")
     insert_streams(stream_rows)
 
-    print("Extracting tracks...")
-    if track_ids:
-        track_rows = extract_tracks_metadata(sp, track_ids)
-        upsert_tracks(track_rows)
-
-    print("Extracting artists...")
-    if artist_ids:
-        artist_rows = extract_artists_metadata(sp, artist_ids)
-        upsert_artists(artist_rows)
-
-    print("Extracting Top Tracks para short, medium, long...")
-    top_short = extract_top_tracks(sp, "short_term")
-    top_medium = extract_top_tracks(sp, "medium_term")
-    top_long = extract_top_tracks(sp, "long_term")
+    print("Extracting Top Tracks for short, medium, and long term...")
+    top_short, top_track_ids_short, top_artist_ids_short = extract_top_tracks(sp, "short_term")
+    top_medium, top_track_ids_medium, top_artist_ids_medium = extract_top_tracks(sp, "medium_term")
+    top_long, top_track_ids_long, top_artist_ids_long = extract_top_tracks(sp, "long_term")
 
     all_top = top_short + top_medium + top_long
     print(f"Inserting {len(all_top)} top tracks...")
     insert_top_tracks(all_top)
+
+    # Combine all track_ids and artist_ids from top tracks
+    all_track_ids = set(top_track_ids_short) | set(top_track_ids_medium) | set(top_track_ids_long)
+    all_artist_ids = set(top_artist_ids_short) | set(top_artist_ids_medium) | set(top_artist_ids_long)
+
+    print("Extracting tracks metadata...")
+    if all_track_ids:
+        track_rows = extract_tracks_metadata(sp, list(all_track_ids))
+        upsert_tracks(track_rows)
+
+    print("Extracting artists metadata...")
+    if all_artist_ids:
+        artist_rows = extract_artists_metadata(sp, list(all_artist_ids))
+        upsert_artists(artist_rows)
 
     print("data inserted on Neon PostgreSQL.")
